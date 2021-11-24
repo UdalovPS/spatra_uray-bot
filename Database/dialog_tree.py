@@ -45,7 +45,7 @@ class DataInsector:
             self.insert_question_in_db()
         if self.dialog_list != None:
             for dialog in self.dialog_list:
-                if len(dialog) > 3:
+                if len(dialog) > 2:
                     self.insert_dialogs_with_emoji(*dialog)
                 else:
                     self.insert_dialog(*dialog)
@@ -83,10 +83,22 @@ class Dialogs:
             (dialog, commands, emoji IF EXISTS)"""
 
         self.zero_d = (0, 'Введите код доступа', 0)
-
+        self.main_menu = (1, 'Выберите команду', 0,
+                          (('Список учеников', '13100,', '\U0001F44A'),
+                           ('Управление группами', '13200,', '\U0001F4CB'),
+                           ('Управление оплатой', '13300,', '\U0001F4B5'))
+                          )
+        self.all_persons_step = (100, 'Выберите ученика', 1,
+                                 (('Добавить ученика', 'add', '\U00002795'),)
+                                 )
+        self.person_last_name = (101, 'Введите фамилию ученика', 100)
+        self.person_first_name = (102, 'Введите имя ученика', 101)
+        self.person_patronymic = (103, 'Введите отчество ученика', 102)
+        self.person_birthdate = (104, 'Введите дату рождения в формате гггг:мм:дд', 103)
+        self.choice_belt = (105, 'Введите пояс ученика', 104)
 
 if __name__ == '__main__':
     data = Dialogs()
-    ins_data = data.zero_d
+    ins_data = data.choice_belt
     DataInsector(*ins_data)
     pass

@@ -30,8 +30,8 @@ class PersonTable(DatabasePSQL):
                                       'last_name        varchar(50),' \
                                       'first_name       varchar(50),' \
                                       'patronymic       varchar(50),' \
-                                      'birthdate        DATE,' \
-                                      'belt             INTEGER'
+                                      'birthdate        varchar(50),' \
+                                      'belt             varchar(50)'
         self.fields = "id, last_name, first_name, patronymic, birthdate, belt"
         self.split_fields = self.fields.split(', ')
 
@@ -70,7 +70,7 @@ class DialogsTable(DatabasePSQL):
 
 
 if __name__ == '__main__':
-    # db = DialogsTable()
+    # db = PersonTable()
     # db.drop_table(db.table_name)
     # db.create_table(db.table_name, db.fields_with_parameters)
     # print(sys.path)

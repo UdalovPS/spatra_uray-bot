@@ -51,10 +51,26 @@ class SelectorDataDb():
                                         f'{self.dia.split_fields[2]},'
                                         f'{self.dia.split_fields[3]}',
                                         conditions)
+        print('DIALOGS: ', data)
         if data:
             return data
         else:
             return None
+
+    def select_last_personal_id(self):
+        """+"""
+        data = self.pers.select_in_table(self.pers.table_name,
+                                         f"MAX({self.pers.split_fields[0]})")
+        return data[0][0]
+
+
+    def select_tmp_personal_id(self):
+        """+"""
+        conditions = f"{self.steps.split_fields[0]}={self.message.chat.id}"
+        data = self.steps.select_in_table(self.steps.table_name,
+                                          f"{self.steps.split_fields[2]}",
+                                          conditions)
+        return data[0][0]
 
     def select_pre_question_id(self):
         step_id = self.select_step_id_from_db()

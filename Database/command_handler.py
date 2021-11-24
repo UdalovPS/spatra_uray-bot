@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from Database.databases import *
+from Database.data_selector import SelectorDataDb
 
 
 class CommandHandler:
@@ -22,10 +23,10 @@ class CommandHandler:
         """
         Command handler algorithm:
         10 - is commands for work with <step_table>;
-        10 000 - delete fields from steps_table where chat_id = message.chat.id;
-        11 000 - insert zero step_id
-        12 000 - change style_id;
-        13 000 - change step_id;
+        10 000 + - delete fields from steps_table where chat_id = message.chat.id;
+        11 000 + - insert zero step_id
+        12 000 + - change tmp_personal_id;
+        13 000 + - change step_id;
         14 000 - return to previous step;
         15 000 - update sticker_id in step_table;
         16 000 - delete sticker_id from step_table;
@@ -48,10 +49,13 @@ class CommandHandler:
         38 000 - update cart_status in cart_table;
         39 000 - update message_id in cart_table;
 
-        40 - is commands for work with <customer_table>;
-        40 000 - insert new customer if not exists;
-        41 000 - update customer name;
-        42 000 - update customer phone number;
+        40 - is commands for work with <personal_table>;
+        40 000 + - insert new personal if not exists;
+        41 000 + - update personal last_name;
+        42 000 + - update personal first_name;
+        43 000 + - update personal patronymic;
+        44 000 + - update personal birthdate;
+        45 000 + - update personal belt;
 
         50 - is commands for work with <scores_table> and <tmp_scores_table>
         50 000 - insert new row in scores_table;
@@ -79,10 +83,10 @@ class CommandHandler:
                     self.__delete_data_from_step_id(self.message.chat.id)
                 if cod == 11:
                     self.__insert_zero_step_id(self.message.chat.id)
-                # if cod == 12:
-                #     self.__change_style_id(value, self.chat_id)
-                # if cod == 13:
-                #     self.__change_step_id(value, self.chat_id)
+                if cod == 12:
+                    self.__update_tmp_person_id(SelectorDataDb(self.message).select_last_personal_id())
+                if cod == 13:
+                    self.__change_step_id(value, self.message.chat.id)
                 # if cod == 14:
                 #     self.__return_to_previous_step(self.chat_id)
                 # if cod == 15:
@@ -117,12 +121,23 @@ class CommandHandler:
                 #     self.__update_cart_status(self.__select_max_cart_id(self.chat_id), value)
                 # if cod == 39:
                 #     self.__update_message_id_in_step_table(self.chat_id)
-                # if cod == 40:
-                #     self.__insert_new_customer(self.chat_id)
-                # if cod == 41:
-                #     self.__update_customer_name(self.chat_id, self.message_text)
-                # if cod == 42:
-                #     self.__update_phone_number(self.chat_id, self.message_text)
+                if cod == 40:
+                    self.__insert_new_customer()
+                if cod == 41:
+                    self.__update_personal_last_name(SelectorDataDb(self.message).select_tmp_personal_id(),
+                                                     self.message.text)
+                if cod == 42:
+                    self.__update_personal_first_name(SelectorDataDb(self.message).select_tmp_personal_id(),
+                                                      self.message.text)
+                if cod == 43:
+                    self.__update_personal_patronymic(SelectorDataDb(self.message).select_tmp_personal_id(),
+                                                      self.message.text)
+                if cod == 44:
+                    self.__update_personal_birthdate(SelectorDataDb(self.message).select_tmp_personal_id(),
+                                                     self.message.text)
+                if cod == 45:
+                    self.__update_personal_belt(SelectorDataDb(self.message).select_tmp_personal_id(),
+                                                self.message.text)
                 # if cod == 50:
                 #     self.__insert_new_row_in_scores_table(self.chat_id)
                 # if cod == 51:
@@ -167,6 +182,7 @@ class CommandHandler:
                                  )
 
     def __change_step_id(self, value, chat_id) -> None:
+        """+"""
         field_value = f'{self.steps.split_fields[1]}={value}'
         conditions = f'{self.steps.split_fields[0]}={chat_id}'
         self.steps.update_fields(self.steps.table_name, field_value,
@@ -243,25 +259,55 @@ class CommandHandler:
                                      field_value, conditions
                                      )
 
-    def __insert_new_customer(self, chat_id) -> None:
-        self.customer.insert_data_in_table(self.customer.table_name,
-                                           f'{self.cart.split_fields[0]},'
-                                           f'{self.customer.split_fields[3]}',
-                                           f'({chat_id}, 1)'
-                                           )
+    def __insert_new_customer(self) -> None:
+        """+"""
+        self.pers.insert_data_in_table(self.pers.table_name,
+                                       f"{self.pers.split_fields[1]}",
+                                       f"('New student')"
+                                       )
 
-    def __update_customer_name(self, chat_id, value) -> None:
-        conditions = f'{self.customer.split_fields[0]}={chat_id}'
-        field_value = f"{self.customer.split_fields[1]}='{value}'"
-        self.customer.update_fields(self.customer.table_name,
-                                    field_value, conditions)
+    def __update_tmp_person_id(self, persond_id):
+        """+"""
+        field_value = f"{self.steps.split_fields[2]}={persond_id}"
+        conditions = f"{self.steps.split_fields[0]}={self.message.chat.id}"
+        self.steps.update_fields(self.steps.table_name,
+                                 field_value, conditions)
+
+    def __update_personal_last_name(self, personal_id, value) -> None:
+        """+"""
+        conditions = f'{self.pers.split_fields[0]}={personal_id}'
+        field_value = f"{self.pers.split_fields[1]}='{value}'"
+        self.pers.update_fields(self.pers.table_name,
+                                field_value, conditions)
 
 
-    def __update_phone_number(self, chat_id, value) -> None:
-        conditions = f'{self.customer.split_fields[0]}={chat_id}'
-        field_value = f"{self.customer.split_fields[2]}='{value}'"
-        self.customer.update_fields(self.customer.table_name,
-                                    field_value, conditions)
+    def __update_personal_first_name(self, personal_id, value) -> None:
+        """+"""
+        conditions = f'{self.pers.split_fields[0]}={personal_id}'
+        field_value = f"{self.pers.split_fields[2]}='{value}'"
+        self.pers.update_fields(self.pers.table_name,
+                                field_value, conditions)
+
+    def __update_personal_patronymic(self, personal_id, value) -> None:
+        """+"""
+        conditions = f'{self.pers.split_fields[0]}={personal_id}'
+        field_value = f"{self.pers.split_fields[3]}='{value}'"
+        self.pers.update_fields(self.pers.table_name,
+                                field_value, conditions)
+
+    def __update_personal_birthdate(self, personal_id, value) -> None:
+        """+"""
+        conditions = f'{self.pers.split_fields[0]}={personal_id}'
+        field_value = f"{self.pers.split_fields[4]}='{value}'"
+        self.pers.update_fields(self.pers.table_name,
+                                field_value, conditions)
+
+    def __update_personal_belt(self, personal_id, value) -> None:
+        """+"""
+        conditions = f'{self.pers.split_fields[0]}={personal_id}'
+        field_value = f"{self.pers.split_fields[5]}='{value}'"
+        self.pers.update_fields(self.pers.table_name,
+                                field_value, conditions)
 
     def __update_delivery_mode(self, chat_id, value) -> None:
         cart_id = self.__select_max_cart_id(chat_id)

@@ -86,6 +86,36 @@ class StandartDataForAnswer(Builder):
         question = SelectorDataDb(self.message).select_question_from_db(self.step_id)
         return Question(question)
 
+    def build_dialogs(self) -> DialogsList:
+        data_from_db = SelectorDataDb(self.message).select_dialog_from_db(self.step_id)
+        if data_from_db == None:
+            return DialogsList()
+        else:
+            dialog_list = DialogsList()
+            self.add_objects_in_dialog_list(dialog_list, data_from_db)
+            return dialog_list
+
+    def build_pre_answer(self) -> PreAnswer:
+        return PreAnswer('Test pre_answer')
+
+    def add_objects_in_dialog_list(self, obj, dialogs) -> None:
+        for dialog in dialogs:
+            data = Dialogs(*dialog)
+            obj.add_obj_in_list(data)
+
+
+class AnswerWithPersonList(Builder):
+    def __init__(self, message):
+        self.message = message
+        self.step_id = SelectorDataDb(message).select_step_id_from_db()
+
+    def build_chat_id(self) -> ChatId:
+        return ChatId(self.message.chat.id)
+
+    def build_question(self) -> Question:
+        question = SelectorDataDb(self.message).select_question_from_db(self.step_id)
+        return Question(question)
+
     def build_dialogs(self) -> Dialogs:
         data_from_db = SelectorDataDb(self.message).select_dialog_from_db(self.step_id)
         if data_from_db == None:
@@ -108,7 +138,6 @@ class Director:
     def __init__(self, message_obj):
         self.message = message_obj
         self.test = TestingBuilder()
-        self.standart = StandartDataForAnswer(message_obj)
 
     def create_testing_obj(self) -> AnswerMessage:
         _id = self.test.build_chat_id()
@@ -117,13 +146,84 @@ class Director:
         _pre = self.test.build_pre_answer()
         return AnswerMessage(_id, _que, _dia, _pre)
 
+    def create_standart_answer_to_msg(self) -> AnswerMessage:
+        standart = StandartDataForAnswer(self.message)
+        _id = standart.build_chat_id()
+        _que = standart.build_question()
+        _dia = standart.build_dialogs()
+        _pre = standart.build_pre_answer()
+        return AnswerMessage(_id, _que, _dia, _pre)
+
     def create_answer_to_start_msg(self) -> AnswerMessage:
         CommandHandler('10000, 11000', self.message)
-        _id = self.standart.build_chat_id()
-        _que = self.standart.build_question()
-        _dia = self.standart.build_dialogs()
-        _pre = self.standart.build_pre_answer()
-        return AnswerMessage(_id, _que, _dia, _pre)
+        return self.create_standart_answer_to_msg()
+
+    def choice_answer_to_text_message(self) -> AnswerMessage:
+        step_id = SelectorDataDb(self.message).select_step_id_from_db()
+        if step_id == 0:
+            data = self.check_password()
+            # return data
+        elif step_id == 101:
+            data = self.answer_after_updating_last_name()
+            # return data
+        elif step_id == 102:
+            data = self.answer_after_updating_first_name()
+        elif step_id == 103:
+            data = self.answer_after_updating_patronymic()
+        elif step_id == 104:
+            data = self.answer_after_updating_birthdate()
+        elif step_id == 105:
+            data = self.answer_after_updating_belt()
+        return data
+
+    def check_password(self) -> AnswerMessage:
+        password = SelectorDataDb(self.message).select_admin_password()
+        try:
+            if int(self.message.text) == password:
+                CommandHandler('13001,', self.message)
+                return self.create_standart_answer_to_msg()
+            else:
+                raise ValueError
+        except ValueError:
+            raise ValueError
+
+    def choice_answer_to_not_named_inline_command(self, call) -> AnswerMessage:
+        CommandHandler(call.data, call.message)
+        step_id = SelectorDataDb(self.message).select_step_id_from_db()
+        if step_id == 100:
+            return self.create_standart_answer_to_msg()
+        else:
+            standart = StandartDataForAnswer(self.message)
+            _id = standart.build_chat_id()
+            _que = standart.build_question()
+            _dia = standart.build_dialogs()
+            _pre = standart.build_pre_answer()
+            return AnswerMessage(_id, _que, _dia, _pre)
+
+    def create_answer_to_add_commands(self, call):
+        CommandHandler('40000, 12000, 13101', call.message)
+        return self.create_standart_answer_to_msg()
+
+    def answer_after_updating_last_name(self):
+        CommandHandler('41000, 13102', self.message)
+        return self.create_standart_answer_to_msg()
+
+    def answer_after_updating_first_name(self):
+        CommandHandler('42000, 13103', self.message)
+        return self.create_standart_answer_to_msg()
+
+    def answer_after_updating_patronymic(self):
+        CommandHandler('43000, 13104', self.message)
+        return self.create_standart_answer_to_msg()
+
+    def answer_after_updating_birthdate(self):
+        CommandHandler('44000, 13105', self.message)
+        return self.create_standart_answer_to_msg()
+
+    def answer_after_updating_belt(self):
+        CommandHandler('45000, 13100', self.message)
+        return self.create_standart_answer_to_msg()
+
 
 
 if __name__ == '__main__':
