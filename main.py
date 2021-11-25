@@ -15,7 +15,18 @@ async def test_msg(message: types.Message):
 @dp.callback_query_handler(text='add')
 async def add_new_person(call: types.CallbackQuery):
     data = Director(call.message).create_answer_to_add_commands(call)
-    await bot.send_message(data._id.chat_id, data._quest.question)
+    keyboard = types.InlineKeyboardMarkup()
+    KeyboardExtender(keyboard, data._dia.dialogs_list)
+    await bot.send_message(data._id.chat_id, data._quest.question, reply_markup=keyboard)
+    await bot.delete_message(call.message.chat.id, call.message.message_id)
+
+@dp.callback_query_handler(text='back')
+async def back_to_previouse_msg(call: types.CallbackQuery):
+    data = Director(call.message).answer_to_back_command()
+    keyboard = types.InlineKeyboardMarkup()
+    KeyboardExtender(keyboard, data._dia.dialogs_list)
+    await bot.send_message(data._id.chat_id, data._quest.question, reply_markup=keyboard)
+    await bot.delete_message(call.message.chat.id, call.message.message_id)
 
 @dp.message_handler(commands='start')
 async def asnwer_to_start_command(message: types.Message):
@@ -38,6 +49,7 @@ async def answer_to_inline_btn_command(call: types.CallbackQuery):
     keyboard = types.InlineKeyboardMarkup()
     KeyboardExtender(keyboard, data._dia.dialogs_list)
     await bot.send_message(data._id.chat_id, data._quest.question, reply_markup=keyboard)
+    await bot.delete_message(call.message.chat.id, call.message.message_id)
 
 
 class KeyboardExtender:

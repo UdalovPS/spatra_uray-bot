@@ -84,7 +84,7 @@ class CommandHandler:
                 if cod == 11:
                     self.__insert_zero_step_id(self.message.chat.id)
                 if cod == 12:
-                    self.__update_tmp_person_id(SelectorDataDb(self.message).select_last_personal_id())
+                    self.__update_tmp_person_id(value)
                 if cod == 13:
                     self.__change_step_id(value, self.message.chat.id)
                 # if cod == 14:
@@ -138,6 +138,8 @@ class CommandHandler:
                 if cod == 45:
                     self.__update_personal_belt(SelectorDataDb(self.message).select_tmp_personal_id(),
                                                 self.message.text)
+                if cod == 46:
+                    self.__delete_data_about_one_person(SelectorDataDb(self.message).select_tmp_personal_id())
                 # if cod == 50:
                 #     self.__insert_new_row_in_scores_table(self.chat_id)
                 # if cod == 51:
@@ -265,6 +267,7 @@ class CommandHandler:
                                        f"{self.pers.split_fields[1]}",
                                        f"('New student')"
                                        )
+        self.__update_tmp_person_id(SelectorDataDb(self.message).select_last_personal_id())
 
     def __update_tmp_person_id(self, persond_id):
         """+"""
@@ -273,13 +276,18 @@ class CommandHandler:
         self.steps.update_fields(self.steps.table_name,
                                  field_value, conditions)
 
-    def __update_personal_last_name(self, personal_id, value) -> None:
+    def __update_personal_last_name(self, person_id, value) -> None:
         """+"""
-        conditions = f'{self.pers.split_fields[0]}={personal_id}'
+        conditions = f'{self.pers.split_fields[0]}={person_id}'
         field_value = f"{self.pers.split_fields[1]}='{value}'"
         self.pers.update_fields(self.pers.table_name,
                                 field_value, conditions)
 
+    def __delete_data_about_one_person(self, person_id):
+        """+"""
+        conditions = f'{self.pers.split_fields[0]}={person_id}'
+        self.pers.delete_data_from_table(self.pers.table_name,
+                                         conditions)
 
     def __update_personal_first_name(self, personal_id, value) -> None:
         """+"""

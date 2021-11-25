@@ -72,17 +72,29 @@ class SelectorDataDb():
                                           conditions)
         return data[0][0]
 
+    def select_data_about_all_persons(self):
+        """+"""
+        data = self.pers.select_in_table(self.pers.table_name,
+                                         f"{self.pers.split_fields[0]},"
+                                         f"{self.pers.split_fields[1]},"
+                                         f"{self.pers.split_fields[2]}")
+        return data
+
     def select_pre_question_id(self):
+        """+"""
         step_id = self.select_step_id_from_db()
-        style_id = self.select_style_id_from_db()
-        conditions = f'{self.questions.split_fields[0]}={step_id}' \
-                     f'AND {self.questions.split_fields[1]}={style_id}'
-        print('Conditions', conditions)
-        data = self.questions.select_in_table(self.questions.table_name,
-                                              f'{self.questions.split_fields[3]}',
-                                              conditions)
-        print('Data', data)
+        conditions = f'{self.quest.split_fields[0]}={step_id}'
+        data = self.quest.select_in_table(self.quest.table_name,
+                                          f'{self.quest.split_fields[2]}',
+                                          conditions)
         return data[0][0]
+
+    def select_data_about_one_person(self, person_id):
+        """+"""
+        conditions = f"{self.pers.split_fields[0]}={person_id}"
+        data = self.pers.select_in_table(self.pers.table_name,
+                                         '*', conditions)
+        return data[0]
 
     def select_pre_step_dialog(self, step_id, command, style=None):
         if style == 0:
