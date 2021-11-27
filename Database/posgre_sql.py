@@ -135,3 +135,14 @@ class DatabasePSQL:
             print(f'[INFO] Data <{data}> was join from <{main_table}>, <{sub_table_1}>, <{sub_table_2}>')
             return data
         return func
+
+    def common_request_select(self, cmn_request):
+        @self.decorate_open_commit_close(cmn_request)
+        def func(cursor, cmn_request):
+            cursor.execute(
+                f"""{cmn_request};"""
+            )
+            data = cursor.fetchall()
+            print(f'[INFO] Data <{data}> was selected>')
+            return data
+        return func

@@ -15,6 +15,8 @@ class CommandHandler:
         self.belt = BeltsTable()
         self.quest = QuestionsTable()
         self.dialog = DialogsTable()
+        self.group = GroupsTable()
+        self.pers_group = PersonalWithGroupTable()
 
 
         self.command_parser()
@@ -27,15 +29,17 @@ class CommandHandler:
         11 000 + - insert zero step_id
         12 000 + - change tmp_personal_id;
         13 000 + - change step_id;
-        14 000 - return to previous step;
+        14 000 - change tmp_group_id;
         15 000 - update sticker_id in step_table;
         16 000 - delete sticker_id from step_table;
 
-        20 - is commands for work with <cart_product_table>;
-        20 000 - insert new row in cart_product_table;
-        21 000 - update wishes in cart_product_table;
-        22 000 - update count in cart_product_table;
-        23 000 - delete garbage;
+        20 - is commands for work with <groups_table>;
+        20 000 + - insert new row in groups_table;
+        21 000 + - update group name in new group;
+        22 000 + - update group_name;
+        23 000 + - update group_name after choice group;
+        24 000 + - add person in group;
+        25 000 + - delete person in group;
 
         30 - is commands for work with <cart_table> and <date_time_place_table>;
         30 000 - insert new row in cart_table;
@@ -88,19 +92,27 @@ class CommandHandler:
                 if cod == 13:
                     self.__change_step_id(value, self.message.chat.id)
                 # if cod == 14:
-                #     self.__return_to_previous_step(self.chat_id)
+                #     self.__update_tmp_group_id(value)
                 # if cod == 15:
                 #     self.__update_sticker_id_in_step_table(self.chat_id)
                 # if cod == 16:
                 #     self.__delete_sticker_id_from_step_table(self.chat_id)
-                # if cod == 20:
-                #     self.__insert_new_row_in_product_cart_table(self.chat_id, value)
-                # if cod == 21:
-                #     self.__update_wishes_in_cart_product_table(self.chat_id, value)
-                # if cod == 22:
-                #     self.__update_product_count_in_cart_table(self.chat_id, self.message_text)
-                # if cod == 23:
-                #     self.__delete_garbage_from_db(self.chat_id)
+                if cod == 20:
+                    self.__insert_new_row_in_group_table()
+                if cod == 21:
+                    self.__update_tmp_group_id(SelectorDataDb(self.message).select_last_group_id(),
+                                               self.message.chat.id)
+                if cod == 22:
+                    self.__update_group_name(SelectorDataDb(self.message).select_tmp_group_id(),
+                                             self.message.text)
+                if cod == 23:
+                    self.__update_tmp_group_id(value, self.message.chat.id)
+                if cod == 24:
+                    self.__add_members_in_group(value, SelectorDataDb(self.message).select_tmp_group_id())
+                if cod == 25:
+                    self.__delete_members_in_group(value, SelectorDataDb(self.message).select_tmp_group_id())
+                if cod == 26:
+                    self.__delete_one_group(SelectorDataDb(self.message).select_tmp_group_id())
                 # if cod == 30:
                 #     self.__insert_start_cart_data(self.chat_id)
                 # if cod == 31:
@@ -191,14 +203,30 @@ class CommandHandler:
                                  conditions
                                  )
 
-    def __return_to_previous_step(self, chat_id) -> None:
-        sel = SelectorDataDb(self.message)
-        step_id = sel.select_step_id_from_db()
-        if step_id == 0:
-            self.__change_style_id(0, chat_id)
-        else:
-            pre_question = sel.select_pre_question_id()
-            self.__change_step_id(pre_question, chat_id)
+    # def __update_tmp_group_id(self, value) -> None:
+    #     """+"""
+    #     conditions = f"{self.steps.split_fields[0]}={self.message.chat.id}"
+    #     field_value = f"{self.steps.split_fields[3]}={value}"
+    #     self.steps.update_fields(self.steps.table_name,
+    #                              field_value, conditions)
+
+    def __add_members_in_group(self, person_id, group_id) -> None:
+        """+"""
+        self.pers_group.insert_data_in_table(self.pers_group.table_name,
+                                             f"{self.pers_group.fields}",
+                                             f"({group_id}, {person_id})")
+
+    def __delete_members_in_group(self, person_id, group_id) -> None:
+        """+"""
+        conditions = f"{self.pers_group.split_fields[0]}={group_id} AND {self.pers_group.split_fields[1]}={person_id}"
+        self.pers_group.delete_data_from_table(self.pers_group.table_name,
+                                               conditions)
+
+    def __delete_one_group(self, group_id) -> None:
+        """+"""
+        conditions = f"{self.group.split_fields[0]}={group_id}"
+        self.group.delete_data_from_table(self.group.table_name,
+                                          conditions)
 
     def __insert_start_cart_data(self, chat_id) -> None:
         self.cart.insert_data_in_table(self.cart.table_name,
@@ -228,29 +256,25 @@ class CommandHandler:
                                          conditions)
         return data[0][0]
 
-    def __insert_new_row_in_product_cart_table(self, chat_id, value) -> None:
-        last_cart_id = self.__select_max_cart_id(chat_id)
-        self.cart_prod.insert_data_in_table(self.cart_prod.table_name,
-                                            f'{self.cart_prod.split_fields[1]},'
-                                            f'{self.cart_prod.split_fields[2]},'
-                                            f'{self.cart_prod.split_fields[5]}',
-                                            f'({last_cart_id}, {value}, 0)')
+    def __insert_new_row_in_group_table(self) -> None:
+        """+"""
+        self.group.insert_data_in_table(self.group.table_name,
+                                        self.group.split_fields[1],
+                                        f"('new group')")
 
-    def __update_wishes_in_cart_product_table(self, chat_id, value) -> None:
-        wishes_name = self.__select_wishes_name_from_additional_table(value)
-        cart_product_id = self.select_last_cart_product_id(chat_id)
-        conditions = f'{self.cart_prod.split_fields[0]}={cart_product_id}'
-        field_value = f"{self.cart_prod.split_fields[4]}='{wishes_name}'"
-        self.cart_prod.update_fields(self.cart_prod.table_name,
-                                     field_value, conditions
-                                     )
+    def __update_tmp_group_id(self, group_id, chat_id):
+        """+"""
+        field_value = f"{self.steps.split_fields[3]}={group_id}"
+        conditions = f"{self.steps.split_fields[0]}={chat_id}"
+        self.steps.update_fields(self.steps.table_name,
+                                 field_value, conditions)
 
-    def __select_wishes_name_from_additional_table(self, wishes_id) -> None:
-        conditions = f'{self.wishes.split_fields[0]}={wishes_id}'
-        data = self.wishes.select_in_table(self.wishes.table_name,
-                                           self.wishes.split_fields[1],
-                                           conditions)
-        return data[0][0]
+    def __update_group_name(self, group_id, value) -> None:
+        """+"""
+        field_value = f"{self.group.split_fields[1]}='{value}'"
+        conditions = f"{self.group.split_fields[0]}={group_id}"
+        self.group.update_fields(self.group.table_name,
+                                 field_value, conditions)
 
     def __update_product_count_in_cart_table(self, chat_id, value) -> None:
         cart_product_id = self.select_last_cart_product_id(chat_id)

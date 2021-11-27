@@ -69,9 +69,28 @@ class DialogsTable(DatabasePSQL):
         self.split_fields = self.fields.split(', ')
 
 
+class GroupsTable(DatabasePSQL):
+    def __init__(self):
+        super(GroupsTable, self).__init__()
+        self.table_name = 'groups_table'
+        self.fields_with_parameters = "id       SERIAL PRIMARY KEY, " \
+                                      "name     varchar(255)"
+        self.fields = 'id, name'
+        self.split_fields = self.fields.split(', ')
+
+
+class PersonalWithGroupTable(DatabasePSQL):
+    def __init__(self):
+        super(PersonalWithGroupTable, self).__init__()
+        self.table_name = 'pers_group_table'
+        self.fields_with_parameters = "group_id     INTEGER references groups_table(id) ON DELETE CASCADE, " \
+                                      "person_id    INTEGER references person_table(id) ON DELETE CASCADE"
+        self.fields = 'group_id, person_id'
+        self.split_fields = self.fields.split(', ')
+
 if __name__ == '__main__':
-    # db = PersonTable()
-    # db.drop_table(db.table_name)
-    # db.create_table(db.table_name, db.fields_with_parameters)
+    db = PersonalWithGroupTable()
+    db.drop_table(db.table_name)
+    db.create_table(db.table_name, db.fields_with_parameters)
     # print(sys.path)
     pass

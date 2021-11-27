@@ -190,6 +190,168 @@ class AnswerDataAboutOnePerson(Builder):
             obj.add_obj_in_list(data)
 
 
+class AnswerWithGroupList(Builder):
+    def __init__(self, message):
+        self.message = message
+        self.step_id = SelectorDataDb(message).select_step_id_from_db()
+
+    def build_chat_id(self) -> ChatId:
+        return ChatId(self.message.chat.id)
+
+    def build_question(self) -> Question:
+        question = SelectorDataDb(self.message).select_question_from_db(self.step_id)
+        return Question(question)
+
+    def build_dialogs(self) -> DialogsList:
+        db = SelectorDataDb(self.message)
+        data_from_db = db.select_dialog_from_db(self.step_id)
+        data_about_all_group = db.select_data_about_all_groups()
+        print(data_about_all_group)
+        for item in data_about_all_group:
+            tmp = []
+            tmp.append(f"{item[1]}")
+            tmp.append(f"{23000 + item[0]}, 13202")
+            data_from_db.append(tmp)
+        data_from_db.append(('Назад', 'back', '\U0001F519'))
+        if data_from_db == None:
+            return DialogsList()
+        else:
+            dialog_list = DialogsList()
+            self.add_objects_in_dialog_list(dialog_list, data_from_db)
+            return dialog_list
+
+    def build_pre_answer(self) -> PreAnswer:
+        return PreAnswer('Test pre_answer')
+
+    def add_objects_in_dialog_list(self, obj, dialogs) -> None:
+        for dialog in dialogs:
+            data = Dialogs(*dialog)
+            obj.add_obj_in_list(data)
+
+
+class AnswerDataAboutOneGroup(Builder):
+    def __init__(self, message):
+        self.message = message
+        self.step_id = SelectorDataDb(message).select_step_id_from_db()
+
+    def build_chat_id(self) -> ChatId:
+        return ChatId(self.message.chat.id)
+
+    def build_question(self) -> Question:
+        db = SelectorDataDb(self.message)
+        group_id = db.select_tmp_group_id()
+        group_name = db.select_group_name(group_id)
+        group_members = db.select_groups_members(group_id)
+        question = f"Имя группы: <strong>{group_name}</strong>\n" \
+                   f"Члены группы:\n"
+        i = 1
+        for item in group_members:
+            question += f"{i}) <strong>{item[1]} {item[2]}</strong>\n"
+            i += 1
+        return Question(question)
+
+    def build_dialogs(self) -> DialogsList:
+        db = SelectorDataDb(self.message)
+        data_from_db = db.select_dialog_from_db(self.step_id)
+        if db.select_step_id_from_db() > 1:
+            if data_from_db != None:
+                data_from_db.append(('Назад', 'back', '\U0001F519'))
+            else:
+                data_from_db = [('Назад', 'back', '\U0001F519')]
+        if data_from_db == None:
+            return DialogsList()
+        else:
+            dialog_list = DialogsList()
+            self.add_objects_in_dialog_list(dialog_list, data_from_db)
+            return dialog_list
+
+    def build_pre_answer(self) -> PreAnswer:
+        return PreAnswer('Test pre_answer')
+
+    def add_objects_in_dialog_list(self, obj, dialogs) -> None:
+        for dialog in dialogs:
+            data = Dialogs(*dialog)
+            obj.add_obj_in_list(data)
+
+
+class AnswerDataAfterAddMembersCommand(Builder):
+    def __init__(self, message):
+        self.message = message
+        self.step_id = SelectorDataDb(message).select_step_id_from_db()
+
+    def build_chat_id(self) -> ChatId:
+        return ChatId(self.message.chat.id)
+
+    def build_question(self) -> Question:
+        question = SelectorDataDb(self.message).select_question_from_db(self.step_id)
+        return Question(question)
+
+    def build_dialogs(self) -> DialogsList:
+        db = SelectorDataDb(self.message)
+        data_from_db = []
+        group_id = db.select_tmp_group_id()
+        persons_not_group = db.select_not_groups_members(group_id)
+        for item in persons_not_group:
+            tmp = []
+            tmp.append(f"{item[1]} {item[2]}")
+            tmp.append(f"{24000 + item[0]}")
+            data_from_db.append(tmp)
+        data_from_db.append(('Назад', 'back', '\U0001F519'))
+        if data_from_db == None:
+            return DialogsList()
+        else:
+            dialog_list = DialogsList()
+            self.add_objects_in_dialog_list(dialog_list, data_from_db)
+            return dialog_list
+
+    def build_pre_answer(self) -> PreAnswer:
+        return PreAnswer('Test pre_answer')
+
+    def add_objects_in_dialog_list(self, obj, dialogs) -> None:
+        for dialog in dialogs:
+            data = Dialogs(*dialog)
+            obj.add_obj_in_list(data)
+
+
+class AnswerDataAfterDelMembersCommand(Builder):
+    def __init__(self, message):
+        self.message = message
+        self.step_id = SelectorDataDb(message).select_step_id_from_db()
+
+    def build_chat_id(self) -> ChatId:
+        return ChatId(self.message.chat.id)
+
+    def build_question(self) -> Question:
+        question = SelectorDataDb(self.message).select_question_from_db(self.step_id)
+        return Question(question)
+
+    def build_dialogs(self) -> DialogsList:
+        db = SelectorDataDb(self.message)
+        data_from_db = []
+        group_id = db.select_tmp_group_id()
+        persons_not_group = db.select_groups_members(group_id)
+        for item in persons_not_group:
+            tmp = []
+            tmp.append(f"{item[1]} {item[2]}")
+            tmp.append(f"{25000 + item[0]}")
+            data_from_db.append(tmp)
+        data_from_db.append(('Назад', 'back', '\U0001F519'))
+        if data_from_db == None:
+            return DialogsList()
+        else:
+            dialog_list = DialogsList()
+            self.add_objects_in_dialog_list(dialog_list, data_from_db)
+            return dialog_list
+
+    def build_pre_answer(self) -> PreAnswer:
+        return PreAnswer('Test pre_answer')
+
+    def add_objects_in_dialog_list(self, obj, dialogs) -> None:
+        for dialog in dialogs:
+            data = Dialogs(*dialog)
+            obj.add_obj_in_list(data)
+
+
 class Director:
     def __init__(self, message_obj):
         self.message = message_obj
@@ -230,7 +392,20 @@ class Director:
             data = self.answer_after_updating_birthdate()
         elif step_id == 105:
             data = self.answer_after_updating_belt()
+        elif step_id == 201:
+            data = self.answer_after_rename_group_name()
         return data
+
+    def answer_after_rename_group_name(self):
+        CommandHandler('13200, 22000', self.message)
+        return self.answer_with_data_about_all_groups()
+
+    def answer_with_data_about_all_groups(self) -> AnswerMessage:
+        _id = AnswerWithGroupList(self.message).build_chat_id()
+        _que = AnswerWithGroupList(self.message).build_question()
+        _dia = AnswerWithGroupList(self.message).build_dialogs()
+        _pre = AnswerWithGroupList(self.message).build_pre_answer()
+        return AnswerMessage(_id, _que, _dia, _pre)
 
     def check_password(self) -> AnswerMessage:
         password = SelectorDataDb(self.message).select_admin_password()
@@ -250,6 +425,14 @@ class Director:
             return self.answer_with_personal_list()
         elif step_id == 110:
             return self.answer_with_data_about_one_person()
+        elif step_id == 200:
+            return self.answer_with_data_about_all_groups()
+        elif step_id == 202:
+            return self.answer_with_data_about_one_group()
+        elif step_id == 203:
+            return self.answer_to_add_person_in_group_cmd()
+        elif step_id == 204:
+            return self.answer_to_del_person_in_group_cmd()
         else:
             standart = StandartDataForAnswer(self.message)
             _id = standart.build_chat_id()
@@ -258,8 +441,32 @@ class Director:
             _pre = standart.build_pre_answer()
             return AnswerMessage(_id, _que, _dia, _pre)
 
+    def answer_to_del_person_in_group_cmd(self):
+        text = AnswerDataAfterDelMembersCommand(self.message)
+        _id = text.build_chat_id()
+        _que = text.build_question()
+        _dia = text.build_dialogs()
+        _pre = text.build_pre_answer()
+        return AnswerMessage(_id, _que, _dia, _pre)
+
+    def answer_to_add_person_in_group_cmd(self):
+        text = AnswerDataAfterAddMembersCommand(self.message)
+        _id = text.build_chat_id()
+        _que = text.build_question()
+        _dia = text.build_dialogs()
+        _pre = text.build_pre_answer()
+        return AnswerMessage(_id, _que, _dia, _pre)
+
     def answer_with_data_about_one_person(self):
         one = AnswerDataAboutOnePerson(self.message)
+        _id = one.build_chat_id()
+        _que = one.build_question()
+        _dia = one.build_dialogs()
+        _pre = one.build_pre_answer()
+        return AnswerMessage(_id, _que, _dia, _pre)
+
+    def answer_with_data_about_one_group(self):
+        one = AnswerDataAboutOneGroup(self.message)
         _id = one.build_chat_id()
         _que = one.build_question()
         _dia = one.build_dialogs()
@@ -303,6 +510,10 @@ class Director:
         CommandHandler(f"{13000 + pre_step_id},", self.message)
         if pre_step_id == 100:
             data = self.answer_with_personal_list()
+        elif pre_step_id == 200:
+            return self.answer_with_data_about_all_groups()
+        elif pre_step_id == 202:
+            return self.answer_with_data_about_one_group()
         else:
             data = self.create_standart_answer_to_msg()
         return data
