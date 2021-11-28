@@ -17,6 +17,8 @@ class CommandHandler:
         self.dialog = DialogsTable()
         self.group = GroupsTable()
         self.pers_group = PersonalWithGroupTable()
+        self.period = PeriodTable()
+        self.pay = PayTable()
 
 
         self.command_parser()
@@ -29,7 +31,7 @@ class CommandHandler:
         11 000 + - insert zero step_id
         12 000 + - change tmp_personal_id;
         13 000 + - change step_id;
-        14 000 - change tmp_group_id;
+        14 000 + - change tmp_period_id;
         15 000 - update sticker_id in step_table;
         16 000 - delete sticker_id from step_table;
 
@@ -37,15 +39,15 @@ class CommandHandler:
         20 000 + - insert new row in groups_table;
         21 000 + - update group name in new group;
         22 000 + - update group_name;
-        23 000 + - update group_name after choice group;
+        23 000 + - update tmp_group_id;
         24 000 + - add person in group;
         25 000 + - delete person in group;
 
-        30 - is commands for work with <cart_table> and <date_time_place_table>;
-        30 000 - insert new row in cart_table;
-        31 000 - insert new row in date_time_place_table;
-        32 000 - update delivery mod;
-        33 000 - update delivery address;
+        30 - is commands for work with <period_table> and <pay_table>;
+        30 000 + - insert new row in pay_period_table;
+        31 000 + - update period name;
+        32 000 +  - update tmp_period_id after insert new row;
+        33 000 + - delete period;
         34 000 - update customer time;
         35 000 - update price_before_scores in cart_table;
         36 000 - add delivery price to price_before_scores;
@@ -91,8 +93,8 @@ class CommandHandler:
                     self.__update_tmp_person_id(value)
                 if cod == 13:
                     self.__change_step_id(value, self.message.chat.id)
-                # if cod == 14:
-                #     self.__update_tmp_group_id(value)
+                if cod == 14:
+                    self.__update_tmp_period_id(self.message.chat.id, value)
                 # if cod == 15:
                 #     self.__update_sticker_id_in_step_table(self.chat_id)
                 # if cod == 16:
@@ -113,14 +115,16 @@ class CommandHandler:
                     self.__delete_members_in_group(value, SelectorDataDb(self.message).select_tmp_group_id())
                 if cod == 26:
                     self.__delete_one_group(SelectorDataDb(self.message).select_tmp_group_id())
-                # if cod == 30:
-                #     self.__insert_start_cart_data(self.chat_id)
-                # if cod == 31:
-                #     self.__insert_new_date_time_place_row(self.chat_id)
-                # if cod == 32:
-                #     self.__update_delivery_mode(self.chat_id, value)
-                # if cod == 33:
-                #     self.__update_delivery_address(self.chat_id)
+                if cod == 30:
+                    self.__insert_new_row_in_period_table()
+                if cod == 31:
+                    self.__update_period_name(SelectorDataDb(self.message).select_tmp_period_id(),
+                                              self.message.text)
+                if cod == 32:
+                    self.__update_tmp_period_id(self.message.chat.id,
+                                                SelectorDataDb(self.message).select_last_period_id())
+                if cod == 33:
+                    self.__delete_period(SelectorDataDb(self.message).select_tmp_period_id())
                 # if cod == 34:
                 #     self.__update_customer_time(self.chat_id)
                 # if cod == 35:
@@ -228,12 +232,11 @@ class CommandHandler:
         self.group.delete_data_from_table(self.group.table_name,
                                           conditions)
 
-    def __insert_start_cart_data(self, chat_id) -> None:
-        self.cart.insert_data_in_table(self.cart.table_name,
-                                       f'{self.cart.split_fields[1]},'
-                                       f'{self.cart.split_fields[2]}',
-                                       f'({chat_id},0)'
-                                       )
+    def __insert_new_row_in_period_table(self) -> None:
+        """+"""
+        self.period.insert_data_in_table(self.period.table_name,
+                                         self.period.split_fields[1],
+                                         f"('new period')")
 
     def __update_sticker_id_in_step_table(self, chat_id) -> None:
         field_value = f'{self.steps.split_fields[3]}={self.message_id}'
@@ -276,14 +279,13 @@ class CommandHandler:
         self.group.update_fields(self.group.table_name,
                                  field_value, conditions)
 
-    def __update_product_count_in_cart_table(self, chat_id, value) -> None:
-        cart_product_id = self.select_last_cart_product_id(chat_id)
-        conditions = f'{self.cart_prod.split_fields[0]}={cart_product_id}'
-        field_value = f"{self.cart_prod.split_fields[3]}={value}," \
-                      f"{self.cart_prod.split_fields[5]}=1"
-        self.cart_prod.update_fields(self.cart_prod.table_name,
-                                     field_value, conditions
-                                     )
+    def __update_tmp_period_id(self, chat_id, period_id) -> None:
+        """+"""
+        field_value = f"{self.steps.split_fields[4]}={period_id}"
+        conditions = f"{self.steps.split_fields[0]}={chat_id}"
+        self.steps.update_fields(self.steps.table_name,
+                                 field_value, conditions)
+
 
     def __insert_new_customer(self) -> None:
         """+"""
@@ -352,12 +354,12 @@ class CommandHandler:
         self.date_place.update_fields(self.date_place.table_name,
                                       field_value, conditions)
 
-    def __insert_new_date_time_place_row(self, chat_id) -> None:
-        cart_id = self.__select_max_cart_id(chat_id)
-        self.cart.insert_data_in_table(self.date_place.table_name,
-                                       f'{self.date_place.split_fields[0]}',
-                                       f'({cart_id})'
-                                       )
+    def __update_period_name(self, period_id, value) -> None:
+        """+"""
+        conditions = f"{self.period.split_fields[0]}={period_id}"
+        fields_value = f"{self.period.split_fields[1]}='{value}'"
+        self.period.update_fields(self.period.table_name,
+                                  fields_value, conditions)
 
     def __update_price_before_scores(self, chat_id) -> None:
         cart_id = self.__select_max_cart_id(chat_id)
@@ -377,12 +379,11 @@ class CommandHandler:
         self.cart.update_fields(self.cart.table_name,
                                 field_value, conditions)
 
-    def __update_delivery_address(self, chat_id) -> None:
-        cart_id = self.__select_max_cart_id(chat_id)
-        conditions = f'{self.date_place.split_fields[0]}={cart_id}'
-        field_value = f"{self.date_place.split_fields[4]}='{self.message_text}'"
-        self.date_place.update_fields(self.date_place.table_name,
-                                      field_value, conditions)
+    def __delete_period(self, period_id) -> None:
+        """+"""
+        conditions = f"{self.period.split_fields[0]}={period_id}"
+        self.period.delete_data_from_table(self.period.table_name,
+                                           conditions)
 
     def __update_customer_time(self, chat_id) -> None:
         cart_id = self.__select_max_cart_id(chat_id)

@@ -88,8 +88,29 @@ class PersonalWithGroupTable(DatabasePSQL):
         self.fields = 'group_id, person_id'
         self.split_fields = self.fields.split(', ')
 
+
+class PeriodTable(DatabasePSQL):
+    def __init__(self):
+        super(PeriodTable, self).__init__()
+        self.table_name = 'period_table'
+        self.fields_with_parameters = "id     SERIAL PRIMARY KEY, " \
+                                      "name   varchar(30)"
+        self.fields = 'id, name'
+        self.split_fields = self.fields.split(', ')
+
+
+class PayTable(DatabasePSQL):
+    def __init__(self):
+        super(PayTable, self).__init__()
+        self.table_name = 'pay_table'
+        self.fields_with_parameters = "person_id    INTEGER references person_table(id) ON DELETE CASCADE, " \
+                                      "group_id     INTEGER references groups_table(id) ON DELETE CASCADE," \
+                                      "period_id    INTEGER references period_table(id) ON DELETE CASCADE"
+        self.fields = 'person_id, group_id, period_id'
+        self.split_fields = self.fields.split(', ')
+
 if __name__ == '__main__':
-    db = PersonalWithGroupTable()
+    db = PayTable()
     db.drop_table(db.table_name)
     db.create_table(db.table_name, db.fields_with_parameters)
     # print(sys.path)

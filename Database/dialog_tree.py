@@ -122,9 +122,17 @@ class Dialogs:
                                      )
         self.add_person_in_group = (203, 'Выберите нужных учеников', 202)
         self.del_person_in_group = (204, 'Выберите нужных учеников которых нужно удалить из группы', 202)
+        self.pay_dialog = (300, 'Выберите период', 1,
+                           (('Создать новый период', '30000, 13301, 32000', '\U00002795'),)
+                           )
+        self.update_period_name = (301, 'Введите название периода', 300)
+        self.groups_in_period = (302, 'Выберите группу', 300,
+                                 (('Изменить название периода', '13301,', '\U0000270F'),
+                                  ('Удалить период', '13300, 33000', '\U0000274C'),)
+                                 )
 
 if __name__ == '__main__':
     data = Dialogs()
-    ins_data = data.data_about_one_group
+    ins_data = data.groups_in_period
     DataInsector(*ins_data)
     pass

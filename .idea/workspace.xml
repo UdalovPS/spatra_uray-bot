@@ -25,7 +25,6 @@
       <change beforePath="$PROJECT_DIR$/Database/data_selector.py" beforeDir="false" afterPath="$PROJECT_DIR$/Database/data_selector.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Database/databases.py" beforeDir="false" afterPath="$PROJECT_DIR$/Database/databases.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Database/dialog_tree.py" beforeDir="false" afterPath="$PROJECT_DIR$/Database/dialog_tree.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Database/posgre_sql.py" beforeDir="false" afterPath="$PROJECT_DIR$/Database/posgre_sql.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/message_builder.py" beforeDir="false" afterPath="$PROJECT_DIR$/message_builder.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../config.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../former_data_about_cart.py" beforeDir="false" />
@@ -195,8 +194,8 @@
       <list>
         <item itemvalue="Python tests.Python tests in main.py" />
         <item itemvalue="Python.dialog_tree" />
-        <item itemvalue="Python.data_selector" />
         <item itemvalue="Python.databases" />
+        <item itemvalue="Python.data_selector" />
         <item itemvalue="Python tests.main.py" />
       </list>
     </recent_temporary>

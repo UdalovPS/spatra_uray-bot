@@ -352,6 +352,82 @@ class AnswerDataAfterDelMembersCommand(Builder):
             obj.add_obj_in_list(data)
 
 
+class AnswerWithAllPeriods(Builder):
+    def __init__(self, message):
+        self.message = message
+        self.step_id = SelectorDataDb(message).select_step_id_from_db()
+
+    def build_chat_id(self) -> ChatId:
+        return ChatId(self.message.chat.id)
+
+    def build_question(self) -> Question:
+        question = SelectorDataDb(self.message).select_question_from_db(self.step_id)
+        return Question(question)
+
+    def build_dialogs(self) -> DialogsList:
+        db = SelectorDataDb(self.message)
+        data_from_db = db.select_dialog_from_db(self.step_id)
+        data_about_all_group = db.select_all_period()
+        for item in data_about_all_group:
+            tmp = []
+            tmp.append(f"{item[1]}")
+            tmp.append(f"{14000 + item[0]}, 13302")
+            data_from_db.append(tmp)
+        data_from_db.append(('Назад', 'back', '\U0001F519'))
+        if data_from_db == None:
+            return DialogsList()
+        else:
+            dialog_list = DialogsList()
+            self.add_objects_in_dialog_list(dialog_list, data_from_db)
+            return dialog_list
+
+    def build_pre_answer(self) -> PreAnswer:
+        return PreAnswer('Test pre_answer')
+
+    def add_objects_in_dialog_list(self, obj, dialogs) -> None:
+        for dialog in dialogs:
+            data = Dialogs(*dialog)
+            obj.add_obj_in_list(data)
+
+
+class AnswerWithGroupListForPay(Builder):
+    def __init__(self, message):
+        self.message = message
+        self.step_id = SelectorDataDb(message).select_step_id_from_db()
+
+    def build_chat_id(self) -> ChatId:
+        return ChatId(self.message.chat.id)
+
+    def build_question(self) -> Question:
+        question = SelectorDataDb(self.message).select_question_from_db(self.step_id)
+        return Question(question)
+
+    def build_dialogs(self) -> DialogsList:
+        db = SelectorDataDb(self.message)
+        data_from_db = db.select_dialog_from_db(self.step_id)
+        data_about_all_group = db.select_data_about_all_groups()
+        for item in data_about_all_group:
+            tmp = []
+            tmp.append(f"{item[1]}")
+            tmp.append(f"{23000 + item[0]}, 13303")
+            data_from_db.append(tmp)
+        data_from_db.append(('Назад', 'back', '\U0001F519'))
+        if data_from_db == None:
+            return DialogsList()
+        else:
+            dialog_list = DialogsList()
+            self.add_objects_in_dialog_list(dialog_list, data_from_db)
+            return dialog_list
+
+    def build_pre_answer(self) -> PreAnswer:
+        return PreAnswer('Test pre_answer')
+
+    def add_objects_in_dialog_list(self, obj, dialogs) -> None:
+        for dialog in dialogs:
+            data = Dialogs(*dialog)
+            obj.add_obj_in_list(data)
+
+
 class Director:
     def __init__(self, message_obj):
         self.message = message_obj
@@ -394,7 +470,20 @@ class Director:
             data = self.answer_after_updating_belt()
         elif step_id == 201:
             data = self.answer_after_rename_group_name()
+        elif step_id == 301:
+            data = self.answer_after_rename_period_name()
         return data
+
+    def answer_with_period_list(self):
+        _id = AnswerWithAllPeriods(self.message).build_chat_id()
+        _que = AnswerWithAllPeriods(self.message).build_question()
+        _dia = AnswerWithAllPeriods(self.message).build_dialogs()
+        _pre = AnswerWithAllPeriods(self.message).build_pre_answer()
+        return AnswerMessage(_id, _que, _dia, _pre)
+
+    def answer_after_rename_period_name(self):
+        CommandHandler('13300, 31000', self.message)
+        return self.answer_with_period_list()
 
     def answer_after_rename_group_name(self):
         CommandHandler('13200, 22000', self.message)
@@ -433,6 +522,10 @@ class Director:
             return self.answer_to_add_person_in_group_cmd()
         elif step_id == 204:
             return self.answer_to_del_person_in_group_cmd()
+        elif step_id == 300:
+            return self.answer_with_period_list()
+        elif step_id == 302:
+            return self.answer_with_all_group_to_pay()
         else:
             standart = StandartDataForAnswer(self.message)
             _id = standart.build_chat_id()
@@ -440,6 +533,14 @@ class Director:
             _dia = standart.build_dialogs()
             _pre = standart.build_pre_answer()
             return AnswerMessage(_id, _que, _dia, _pre)
+
+    def answer_with_all_group_to_pay(self):
+        _id = AnswerWithGroupListForPay(self.message).build_chat_id()
+        _que = AnswerWithGroupListForPay(self.message).build_question()
+        _dia = AnswerWithGroupListForPay(self.message).build_dialogs()
+        _pre = AnswerWithGroupListForPay(self.message).build_pre_answer()
+        return AnswerMessage(_id, _que, _dia, _pre)
+
 
     def answer_to_del_person_in_group_cmd(self):
         text = AnswerDataAfterDelMembersCommand(self.message)
@@ -514,6 +615,10 @@ class Director:
             return self.answer_with_data_about_all_groups()
         elif pre_step_id == 202:
             return self.answer_with_data_about_one_group()
+        elif pre_step_id == 300:
+            return self.answer_with_period_list()
+        elif pre_step_id == 301:
+            data = self.answer_after_rename_period_name()
         else:
             data = self.create_standart_answer_to_msg()
         return data

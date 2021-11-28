@@ -13,6 +13,30 @@ class SelectorDataDb():
         self.dia = DialogsTable()
         self.group = GroupsTable()
         self.pers_group = PersonalWithGroupTable()
+        self.period = PeriodTable()
+        self.pay = PayTable()
+
+    def select_all_period(self):
+        """+"""
+        data = self.period.select_in_table(self.period.table_name,
+                                          '*')
+        return data
+
+
+    def select_tmp_period_id(self):
+        """+"""
+        conditions = f"{self.steps.split_fields[0]}={self.message.chat.id}"
+        data = self.steps.select_in_table(self.steps.table_name,
+                                          f"{self.steps.split_fields[4]}",
+                                          conditions)
+        return data[0][0]
+
+
+    def select_last_period_id(self):
+        data = self.period.select_in_table(self.period.table_name,
+                                           f"MAX({self.pers.split_fields[0]})")
+        print('LAST PERIOD ID', data)
+        return data[0][0]
 
     def select_admin_password(self):
         """+"""
