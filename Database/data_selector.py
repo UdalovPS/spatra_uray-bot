@@ -16,6 +16,26 @@ class SelectorDataDb():
         self.period = PeriodTable()
         self.pay = PayTable()
 
+    def select_pay_people_in_one_group(self, group_id, period_id):
+        """+"""
+        conditions = f"{self.pay.split_fields[1]}={group_id} AND {self.pay.split_fields[2]}={period_id}"
+        data = self.pay.select_in_table(self.pay.table_name,
+                                        self.pay.split_fields[0],
+                                        conditions)
+        if data:
+            return data
+        else:
+            return []
+
+    def select_period_name(self):
+        """+"""
+        period_id = self.select_tmp_period_id()
+        conditions = f"{self.period.split_fields[0]}={period_id}"
+        data = self.period.select_in_table(self.period.table_name,
+                                           self.period.split_fields[1],
+                                           conditions)
+        return data[0][0]
+
     def select_all_period(self):
         """+"""
         data = self.period.select_in_table(self.period.table_name,
@@ -35,7 +55,6 @@ class SelectorDataDb():
     def select_last_period_id(self):
         data = self.period.select_in_table(self.period.table_name,
                                            f"MAX({self.pers.split_fields[0]})")
-        print('LAST PERIOD ID', data)
         return data[0][0]
 
     def select_admin_password(self):
@@ -77,7 +96,6 @@ class SelectorDataDb():
                                         f'{self.dia.split_fields[2]},'
                                         f'{self.dia.split_fields[3]}',
                                         conditions)
-        print('DIALOGS: ', data)
         if data:
             return data
         else:

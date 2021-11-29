@@ -130,9 +130,15 @@ class Dialogs:
                                  (('Изменить название периода', '13301,', '\U0000270F'),
                                   ('Удалить период', '13300, 33000', '\U0000274C'),)
                                  )
+        self.one_group_for_pay = (303, '-', 302,
+                                  (('Отметить оплату', '13304,', '\U0001F4B5'),
+                                   ('Удалить оплату', '13305,', '\U0000274C'))
+                                  )
+        self.registered_pay = (304, '-', 303)
+        self.de_registered_pay = (305, '-', 303)
 
 if __name__ == '__main__':
     data = Dialogs()
-    ins_data = data.groups_in_period
+    ins_data = data.de_registered_pay
     DataInsector(*ins_data)
     pass

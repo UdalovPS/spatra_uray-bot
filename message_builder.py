@@ -368,7 +368,7 @@ class AnswerWithAllPeriods(Builder):
         db = SelectorDataDb(self.message)
         data_from_db = db.select_dialog_from_db(self.step_id)
         data_about_all_group = db.select_all_period()
-        for item in data_about_all_group:
+        for item in reversed(data_about_all_group):
             tmp = []
             tmp.append(f"{item[1]}")
             tmp.append(f"{14000 + item[0]}, 13302")
@@ -399,8 +399,10 @@ class AnswerWithGroupListForPay(Builder):
         return ChatId(self.message.chat.id)
 
     def build_question(self) -> Question:
-        question = SelectorDataDb(self.message).select_question_from_db(self.step_id)
-        return Question(question)
+        db = SelectorDataDb(self.message)
+        question = db.select_question_from_db(self.step_id)
+        period_name = db.select_period_name()
+        return Question(f"<strong>{period_name}</strong>\n{question}")
 
     def build_dialogs(self) -> DialogsList:
         db = SelectorDataDb(self.message)
@@ -410,13 +412,179 @@ class AnswerWithGroupListForPay(Builder):
             tmp = []
             tmp.append(f"{item[1]}")
             tmp.append(f"{23000 + item[0]}, 13303")
-            data_from_db.append(tmp)
+            data_from_db.insert(0, tmp)
         data_from_db.append(('Назад', 'back', '\U0001F519'))
         if data_from_db == None:
             return DialogsList()
         else:
             dialog_list = DialogsList()
             self.add_objects_in_dialog_list(dialog_list, data_from_db)
+            return dialog_list
+
+    def build_pre_answer(self) -> PreAnswer:
+        return PreAnswer('Test pre_answer')
+
+    def add_objects_in_dialog_list(self, obj, dialogs) -> None:
+        for dialog in dialogs:
+            data = Dialogs(*dialog)
+            obj.add_obj_in_list(data)
+
+
+class AnswerWithPayAndNotPayPeople(Builder):
+    def __init__(self, message):
+        self.message = message
+        self.step_id = SelectorDataDb(message).select_step_id_from_db()
+
+    def build_chat_id(self) -> ChatId:
+        return ChatId(self.message.chat.id)
+
+    def build_question(self) -> Question:
+        db = SelectorDataDb(self.message)
+        group_id = db.select_tmp_group_id()
+        period_id = db.select_tmp_period_id()
+        group_name = db.select_group_name(group_id)
+        period_name = db.select_period_name()
+        group_members = db.select_groups_members(group_id)
+        pay_people_id = db.select_pay_people_in_one_group(group_id, period_id)
+        data = f"<strong>{period_name}\n{group_name}</strong>\n"
+        pay_list = "<u>Оплатили:</u>\n"
+        not_pay_list = "<i>Не оплатили:</i>\n"
+        pay_id_list = []
+        for i in pay_people_id:
+            pay_id_list.append(i[0])
+        i, j = 1, 1
+        for people in group_members:
+            if people[0] in pay_id_list:
+                pay_list += f"{i})<u>{people[1]} {people[2]}</u>\n"
+                i += 1
+            else:
+                not_pay_list += f"{j})<i>{people[1]} {people[2]}</i>\n"
+                j += 1
+        return Question(f"{data}{pay_list}{not_pay_list}")
+
+    def build_dialogs(self) -> DialogsList:
+        db = SelectorDataDb(self.message)
+        data_from_db = db.select_dialog_from_db(self.step_id)
+        data_about_all_group = db.select_data_about_all_groups()
+        for item in data_about_all_group:
+            tmp = []
+            tmp.append(f"{item[1]}")
+            tmp.append(f"{23000 + item[0]}, 13303")
+            data_from_db.insert(0, tmp)
+        data_from_db.append(('Назад', 'back', '\U0001F519'))
+        if data_from_db == None:
+            return DialogsList()
+        else:
+            dialog_list = DialogsList()
+            self.add_objects_in_dialog_list(dialog_list, data_from_db)
+            return dialog_list
+
+    def build_pre_answer(self) -> PreAnswer:
+        return PreAnswer('Test pre_answer')
+
+    def add_objects_in_dialog_list(self, obj, dialogs) -> None:
+        for dialog in dialogs:
+            data = Dialogs(*dialog)
+            obj.add_obj_in_list(data)
+
+
+class AnswerToRegisteredPay(Builder):
+    def __init__(self, message):
+        self.message = message
+        self.step_id = SelectorDataDb(message).select_step_id_from_db()
+
+    def build_chat_id(self) -> ChatId:
+        return ChatId(self.message.chat.id)
+
+    def build_question(self) -> Question:
+        db = SelectorDataDb(self.message)
+        group_id = db.select_tmp_group_id()
+        # period_id = db.select_tmp_period_id()
+        group_name = db.select_group_name(group_id)
+        period_name = db.select_period_name()
+        data = f"<strong>{period_name}\n{group_name}</strong>\nОтметьте оплативших"
+        return Question(f"{data}")
+
+    def build_dialogs(self) -> DialogsList:
+        db = SelectorDataDb(self.message)
+        group_id = db.select_tmp_group_id()
+        period_id = db.select_tmp_period_id()
+        group_members = db.select_groups_members(group_id)
+        pay_people_id = db.select_pay_people_in_one_group(group_id, period_id)
+        pay_id_list = []
+        for i in pay_people_id:
+            pay_id_list.append(i[0])
+        not_pay = []
+        data = []
+        for people in group_members:
+            if people[0] not in pay_id_list:
+                not_pay.append(people)
+        if not_pay:
+            for item in not_pay:
+                tmp = []
+                tmp.append(f"{item[1]} {item[2]}")
+                tmp.append(f"{34000 + item[0]},")
+                data.append(tmp)
+        data.append(('Назад', 'back', '\U0001F519'))
+        if data == None:
+            return DialogsList()
+        else:
+            dialog_list = DialogsList()
+            self.add_objects_in_dialog_list(dialog_list, data)
+            return dialog_list
+
+    def build_pre_answer(self) -> PreAnswer:
+        return PreAnswer('Test pre_answer')
+
+    def add_objects_in_dialog_list(self, obj, dialogs) -> None:
+        for dialog in dialogs:
+            data = Dialogs(*dialog)
+            obj.add_obj_in_list(data)
+
+
+class AnswerToCancelPay(Builder):
+    def __init__(self, message):
+        self.message = message
+        self.step_id = SelectorDataDb(message).select_step_id_from_db()
+
+    def build_chat_id(self) -> ChatId:
+        return ChatId(self.message.chat.id)
+
+    def build_question(self) -> Question:
+        db = SelectorDataDb(self.message)
+        group_id = db.select_tmp_group_id()
+        # period_id = db.select_tmp_period_id()
+        group_name = db.select_group_name(group_id)
+        period_name = db.select_period_name()
+        data = f"<strong>{period_name}\n{group_name}</strong>\nНажмите для отмены оплаты"
+        return Question(f"{data}")
+
+    def build_dialogs(self) -> DialogsList:
+        db = SelectorDataDb(self.message)
+        group_id = db.select_tmp_group_id()
+        period_id = db.select_tmp_period_id()
+        group_members = db.select_groups_members(group_id)
+        pay_people_id = db.select_pay_people_in_one_group(group_id, period_id)
+        pay_id_list = []
+        for i in pay_people_id:
+            pay_id_list.append(i[0])
+        not_pay = []
+        data = []
+        for people in group_members:
+            if people[0] in pay_id_list:
+                not_pay.append(people)
+        if not_pay:
+            for item in not_pay:
+                tmp = []
+                tmp.append(f"{item[1]} {item[2]}")
+                tmp.append(f"{35000 + item[0]},")
+                data.append(tmp)
+        data.append(('Назад', 'back', '\U0001F519'))
+        if data == None:
+            return DialogsList()
+        else:
+            dialog_list = DialogsList()
+            self.add_objects_in_dialog_list(dialog_list, data)
             return dialog_list
 
     def build_pre_answer(self) -> PreAnswer:
@@ -526,6 +694,12 @@ class Director:
             return self.answer_with_period_list()
         elif step_id == 302:
             return self.answer_with_all_group_to_pay()
+        elif step_id == 303:
+            return self.answer_with_all_pay_and_not_pay_person()
+        elif step_id == 304:
+            return self.register_person_pay()
+        elif step_id == 305:
+            return self.cancel_person_pay()
         else:
             standart = StandartDataForAnswer(self.message)
             _id = standart.build_chat_id()
@@ -533,6 +707,27 @@ class Director:
             _dia = standart.build_dialogs()
             _pre = standart.build_pre_answer()
             return AnswerMessage(_id, _que, _dia, _pre)
+
+    def cancel_person_pay(self):
+        _id = AnswerToCancelPay(self.message).build_chat_id()
+        _que = AnswerToCancelPay(self.message).build_question()
+        _dia = AnswerToCancelPay(self.message).build_dialogs()
+        _pre = AnswerToCancelPay(self.message).build_pre_answer()
+        return AnswerMessage(_id, _que, _dia, _pre)
+
+    def register_person_pay(self):
+        _id = AnswerToRegisteredPay(self.message).build_chat_id()
+        _que = AnswerToRegisteredPay(self.message).build_question()
+        _dia = AnswerToRegisteredPay(self.message).build_dialogs()
+        _pre = AnswerToRegisteredPay(self.message).build_pre_answer()
+        return AnswerMessage(_id, _que, _dia, _pre)
+
+    def answer_with_all_pay_and_not_pay_person(self):
+        _id = AnswerWithPayAndNotPayPeople(self.message).build_chat_id()
+        _que = AnswerWithPayAndNotPayPeople(self.message).build_question()
+        _dia = StandartDataForAnswer(self.message).build_dialogs()
+        _pre = AnswerWithPayAndNotPayPeople(self.message).build_pre_answer()
+        return AnswerMessage(_id, _que, _dia, _pre)
 
     def answer_with_all_group_to_pay(self):
         _id = AnswerWithGroupListForPay(self.message).build_chat_id()
@@ -619,6 +814,12 @@ class Director:
             return self.answer_with_period_list()
         elif pre_step_id == 301:
             data = self.answer_after_rename_period_name()
+        elif pre_step_id == 302:
+            return self.answer_with_all_group_to_pay()
+        elif pre_step_id == 303:
+            return self.answer_with_all_pay_and_not_pay_person()
+        elif pre_step_id == 304:
+            return self.register_person_pay()
         else:
             data = self.create_standart_answer_to_msg()
         return data

@@ -23,7 +23,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Database/command_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/Database/command_handler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Database/data_selector.py" beforeDir="false" afterPath="$PROJECT_DIR$/Database/data_selector.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Database/databases.py" beforeDir="false" afterPath="$PROJECT_DIR$/Database/databases.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Database/dialog_tree.py" beforeDir="false" afterPath="$PROJECT_DIR$/Database/dialog_tree.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/message_builder.py" beforeDir="false" afterPath="$PROJECT_DIR$/message_builder.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../config.py" beforeDir="false" />

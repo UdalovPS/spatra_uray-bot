@@ -48,8 +48,8 @@ class CommandHandler:
         31 000 + - update period name;
         32 000 +  - update tmp_period_id after insert new row;
         33 000 + - delete period;
-        34 000 - update customer time;
-        35 000 - update price_before_scores in cart_table;
+        34 000 + - insert new row in pay_table;
+        35 000 + - delete  1 row in pay_table;
         36 000 - add delivery price to price_before_scores;
         37 000 - update final price in cart_table;
         38 000 - update cart_status in cart_table;
@@ -125,10 +125,10 @@ class CommandHandler:
                                                 SelectorDataDb(self.message).select_last_period_id())
                 if cod == 33:
                     self.__delete_period(SelectorDataDb(self.message).select_tmp_period_id())
-                # if cod == 34:
-                #     self.__update_customer_time(self.chat_id)
-                # if cod == 35:
-                #     self.__update_price_before_scores(self.chat_id)
+                if cod == 34:
+                    self.__insert_new_row_in_pay_table(value)
+                if cod == 35:
+                    self.__delete_one_row_in_pay_table(value)
                 # if cod == 36:
                 #     self.__add_delivery_price(self.chat_id, self.sub_text)
                 # if cod == 37:
@@ -178,6 +178,27 @@ class CommandHandler:
                 #     self.__update_black_list_status(SelectorDataDb(self.message).select_tmp_customer_id(), value)
                 # if cod == 95:
                 #     self.__update_personal_discount(self.sub_text[0], self.sub_text[1])
+
+    def __delete_one_row_in_pay_table(self, person_id):
+        """+"""
+        db = SelectorDataDb(self.message)
+        group_id = db.select_tmp_group_id()
+        period_id = db.select_tmp_period_id()
+        conditions = f"{self.pay.split_fields[0]}={person_id} " \
+                     f"AND {self.pay.split_fields[1]}={group_id}" \
+                     f"AND {self.pay.split_fields[2]}={period_id}"
+        self.pay.delete_data_from_table(self.pay.table_name,
+                                        conditions)
+
+    def __insert_new_row_in_pay_table(self, person_id):
+        """+"""
+        db = SelectorDataDb(self.message)
+        group_id = db.select_tmp_group_id()
+        period_id = db.select_tmp_period_id()
+        self.pay.insert_data_in_table(self.pay.table_name,
+                                      f"{self.pay.fields}",
+                                      f"({person_id}, {group_id}, {period_id})")
+
 
     def __delete_data_from_step_id(self, chat_id) -> None:
         """+"""
