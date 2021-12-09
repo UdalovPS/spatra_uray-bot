@@ -28,7 +28,7 @@ async def back_to_previouse_msg(call: types.CallbackQuery):
     await bot.send_message(data._id.chat_id, data._quest.question, reply_markup=keyboard)
     await bot.delete_message(call.message.chat.id, call.message.message_id)
 
-@dp.message_handler(commands='start')
+@dp.message_handler(commands=['sparta', 'спарта'])
 async def asnwer_to_start_command(message: types.Message):
     data = Director(message).create_answer_to_start_msg()
     await bot.send_message(data._id.chat_id, data._quest.question)

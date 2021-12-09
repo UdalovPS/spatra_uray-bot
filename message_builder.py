@@ -553,7 +553,6 @@ class AnswerToCancelPay(Builder):
     def build_question(self) -> Question:
         db = SelectorDataDb(self.message)
         group_id = db.select_tmp_group_id()
-        # period_id = db.select_tmp_period_id()
         group_name = db.select_group_name(group_id)
         period_name = db.select_period_name()
         data = f"<strong>{period_name}\n{group_name}</strong>\nНажмите для отмены оплаты"
@@ -596,6 +595,32 @@ class AnswerToCancelPay(Builder):
             obj.add_obj_in_list(data)
 
 
+class StartInformationCommands(Builder):
+    def __init__(self, message):
+        self.message = message
+        self.step_id = SelectorDataDb(message).select_step_id_from_db()
+
+    def build_chat_id(self) -> ChatId:
+        return ChatId(self.message.chat.id)
+
+    def build_question(self) -> Question:
+        data = 'Для работы начала работы с ботом отправьте сообщение:\n' \
+               '<strong>/sparta</strong> или <strong>/спарта</strong>'
+        return Question(data)
+
+    def build_dialogs(self) -> DialogsList:
+        dialog_list = DialogsList()
+        return dialog_list
+
+    def build_pre_answer(self) -> PreAnswer:
+        return PreAnswer('Test pre_answer')
+
+    def add_objects_in_dialog_list(self, obj, dialogs) -> None:
+        for dialog in dialogs:
+            data = Dialogs(*dialog)
+            obj.add_obj_in_list(data)
+
+
 class Director:
     def __init__(self, message_obj):
         self.message = message_obj
@@ -624,10 +649,8 @@ class Director:
         step_id = SelectorDataDb(self.message).select_step_id_from_db()
         if step_id == 0:
             data = self.check_password()
-            # return data
         elif step_id == 101:
             data = self.answer_after_updating_last_name()
-            # return data
         elif step_id == 102:
             data = self.answer_after_updating_first_name()
         elif step_id == 103:
@@ -640,7 +663,16 @@ class Director:
             data = self.answer_after_rename_group_name()
         elif step_id == 301:
             data = self.answer_after_rename_period_name()
+        else:
+            data = self.information_with_start_commands()
         return data
+
+    def information_with_start_commands(self):
+        _id = StartInformationCommands(self.message).build_chat_id()
+        _que = StartInformationCommands(self.message).build_question()
+        _dia = StartInformationCommands(self.message).build_dialogs()
+        _pre = StartInformationCommands(self.message).build_pre_answer()
+        return AnswerMessage(_id, _que, _dia, _pre)
 
     def answer_with_period_list(self):
         _id = AnswerWithAllPeriods(self.message).build_chat_id()

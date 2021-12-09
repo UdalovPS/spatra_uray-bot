@@ -1,10 +1,11 @@
-class ConfigTelebot():
+class ConfigTelebot:
     def __init__(self):
-        self.api_token = '1955432392:AAFIKGS33j1DsT-zsWIAc_fs6ckOX4yjLQY'
+        self.api_token = 'Your token'
 
-class ConfigDatabase():
+
+class ConfigDatabase:
     def __init__(self):
         self.host = 'localhost'
-        self.user = 'telebot_dev'
-        self.password = '1414'
-        self.db_name = 'sparta_uray_db'
+        self.user = 'your_user_name'
+        self.password = 'your_user_password'
+        self.db_name = 'your_db_name'
